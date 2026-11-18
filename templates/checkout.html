@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-4">Thông tin khách hàng</h3>
+<div class="row g-4">
+    <!-- Form thông tin -->
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('checkout') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.customer_name.label(class="form-label fw-bold") }}
+                        {{ form.customer_name(class="form-control") }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.phone.label(class="form-label fw-bold") }}
+                            {{ form.phone(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.email.label(class="form-label fw-bold") }}
+                            {{ form.email(class="form-control", placeholder="Không bắt buộc") }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.address.label(class="form-label fw-bold") }}
+                        {{ form.address(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label fw-bold") }}
+                        {{ form.notes(class="form-control", rows="2") }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.payment_method.label(class="form-label fw-bold") }}
+                        {{ form.payment_method(class="form-select") }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('cart') }}" class="text-decoration-none">&larr; Quay lại giỏ hàng</a>
+                        {{ form.submit(class="btn btn-primary px-4") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tóm tắt đơn hàng -->
+    <div class="col-md-5">
+        <div class="card bg-light shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Đơn hàng của bạn</h5>
+                <div class="mb-3">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-truncate me-3">{{ item.book.title }} × {{ item.quantity }}</span>
+                        <span>{{ "{:,.0f}".format(item.subtotal).replace(',', '.') }} ₫</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tạm tính</span>
+                    <span>{{ "{:,.0f}".format(subtotal).replace(',', '.') }} ₫</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 text-success">
+                    <span>Phí giao hàng</span>
+                    <span>{% if shipping_fee == 0 %}Miễn phí{% else %}{{ "{:,.0f}".format(shipping_fee).replace(',', '.') }} ₫{% endif %}</span>
+                </div>
+                {% if shipping_fee > 0 %}
+                    <small class="text-muted d-block mb-3">Miễn phí giao hàng khi tạm tính từ 200.000 ₫</small>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold fs-5">Tổng thanh toán</span>
+                    <span class="text-danger fw-bold fs-4">{{ "{:,.0f}".format(total).replace(',', '.') }} ₫</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

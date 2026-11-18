@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-0 shadow-sm border rounded bg-white">
+        {% include '_admin_sidebar.html' %}
+
+        <div class="col-md-9 col-lg-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Sách ({{ total_filtered }})</h4>
+                <a href="{{ url_for('new_book') }}" class="btn btn-primary">+ Thêm sách</a>
+            </div>
+
+            <!-- Thanh tìm kiếm & lọc -->
+            <form method="GET" action="{{ url_for('admin_books') }}" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="q" class="form-control" placeholder="Tìm tên sách, tác giả..." value="{{ q }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">Mọi danh mục</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {{ 'selected' if selected_category == cat.id|string }}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="stock" class="form-select">
+                        <option value="">Tồn kho</option>
+                        <option value="available" {{ 'selected' if selected_stock == 'available' }}>Còn hàng</option>
+                        <option value="low" {{ 'selected' if selected_stock == 'low' }}>Sắp hết (&le; 5)</option>
+                        <option value="out" {{ 'selected' if selected_stock == 'out' }}>Hết hàng (0)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">Lọc</button>
+                </div>
+            </form>
+
+            <!-- Bảng danh sách sách -->
+            <div class="table-responsive border rounded">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 55px;"></th>
+                            <th>Tên sách / Tác giả</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Tồn</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books %}
+                        <tr>
+                            <td>
+                                {% if book.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + book.image) }}" alt="" style="width: 38px; height: 48px; object-fit: cover;" class="rounded border">
+                                {% else %}
+                                    <div class="bg-light rounded border" style="width: 38px; height: 48px;"></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ book.title }}</div>
+                                <small class="text-muted">{{ book.author }}</small>
+                            </td>
+                            <td>{{ book.category.name if book.category else '' }}</td>
+                            <td>{{ "{:,.0f}".format(book.price).replace(',', '.') }}</td>
+                            <td>
+                                {% if book.stock == 0 %}
+                                    <span class="text-danger fw-bold">0</span>
+                                {% else %}
+                                    <span>{{ book.stock }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('edit_book', id=book.id) }}" class="text-primary text-decoration-none me-2">Sửa</a>
+                                {% if book.order_items|length > 0 %}
+                                    <span class="text-muted opacity-50" title="Sách đã có trong đơn hàng">Xoá</span>
+                                {% else %}
+                                    <form action="{{ url_for('delete_book', id=book.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Xoá sách {{ book.title }}?');">
+                                        {{ csrf_form.hidden_tag() }}
+                                        <button type="submit" class="btn btn-link text-danger text-decoration-none p-0">Xoá</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Không tìm thấy sách phù hợp.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Phân trang (5 cuốn/trang) -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <small class="text-muted">
+                    {% if total_filtered > 0 %}
+                        Hiển thị {{ (pagination.page - 1) * pagination.per_page + 1 }} &ndash; {{ [pagination.page * pagination.per_page, total_filtered]|min }} / {{ total_filtered }} sách
+                    {% else %}
+                        0 sách
+                    {% endif %}
+                </small>
+                {% if pagination.pages > 1 %}
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% for p in pagination.iter_pages() %}
+                            {% if p %}
+                                <li class="page-item {{ 'active' if p == pagination.page }}">
+                                    <a class="page-link" href="{{ url_for('admin_books', page=p, q=q, category=selected_category, stock=selected_stock) }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <!-- Cột Sidebar Admin -->
+    <div class="col-md-3 mb-4">
+        <div class="list-group shadow-sm">
+            <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action active bg-dark border-dark"><i class="bi bi-grid"></i> Tổng quan</a>
+            <a href="{{ url_for('admin_books') }}" class="list-group-item list-group-item-action"><i class="bi bi-book"></i> Sách</a>
+            <a href="{{ url_for('admin_categories') }}" class="list-group-item list-group-item-action"><i class="bi bi-tags"></i> Danh mục</a>
+            <a href="{{ url_for('admin_orders') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-receipt"></i> Đơn hàng</span>
+                {% if pending_orders and pending_orders > 0 %}<span class="badge bg-danger rounded-pill">{{ pending_orders }}</span>{% endif %}
+            </a>
+        </div>
+    </div>
+    
+    <!-- Cột Nội dung Tổng quan -->
+    <div class="col-md-9">
+        <h4 class="mb-4">Tổng quan</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Đầu sách</h6>
+                        <h2 class="fw-bold">{{ total_books }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Đơn chờ xác nhận</h6>
+                        <h2 class="fw-bold text-danger">{{ pending_orders }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Doanh thu</h6>
+                        <h4 class="fw-bold text-success mt-2">{{ "{:,.0f}".format(revenue).replace(',', '.') }} ₫</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted">Sắp hết hàng (&le;5)</h6>
+                        <h2 class="fw-bold text-danger">{{ low_stock_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <h5 class="mb-3">Đơn hàng mới nhất</h5>
+                <table class="table table-bordered bg-white shadow-sm">
+                    <thead class="table-light"><tr><th>Mã</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.customer_name }}</td>
+                            <td>Chưa xử lý (Lấy từ order items)</td>
+                            <td><span class="badge bg-{{ 'warning' if order.status=='Chờ xác nhận' else 'success' }}">{{ order.status }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <a href="{{ url_for('admin_orders') }}">Xem tất cả đơn hàng &rarr;</a>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm bg-light">
+                    <div class="card-header fw-bold">Sắp hết hàng (&le; 5)</div>
+                    <ul class="list-group list-group-flush">
+                        {% for book in low_stock_books %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            <a href="{{ url_for('book_form', id=book.id) }}" class="text-decoration-none">{{ book.title }}</a>
+                            <span class="text-danger fw-bold">{{ book.stock }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
